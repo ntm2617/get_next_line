@@ -65,9 +65,16 @@ char	*new_buffer(char *buffer)
 		i++;
 	if (buffer[i] == '\n')
 		i++;
+	else if (buffer[i] == '\0')
+	{
+		free(newb);
+		free(buffer);
+		return (NULL);
+	}
 	j = 0;
 	while (buffer[i] != '\0')
 		newb[j++] = buffer[i++];
+	newb[j] = '\0';
 	free(buffer);
 	return (newb);
 }
