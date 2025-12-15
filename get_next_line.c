@@ -3,52 +3,45 @@
 /*                                                        :::      ::::::::   */
 /*   get_next_line.c                                    :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: marvin <marvin@student.42.fr>              +#+  +:+       +#+        */
+/*   By: nkarnpan <nkarnpan@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/11/02 22:07:10 by marvin            #+#    #+#             */
-/*   Updated: 2025/11/02 22:07:10 by marvin           ###   ########.fr       */
+/*   Updated: 2025/11/04 00:57:58 by nkarnpan         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "get_next_line.h"
 
-int	check_newline(char *buffer)
-{
-	int i;
-
-	i = 0;
-	if (buffer == NULL)
-		return (0);
-	while (buffer[i] != '\0')
-	{
-		if (buffer[i] == '\n')
-			return (1);
-		i++;
-	}
-	return (0);
-}
-
 char	*copy_result(char *buffer)
 {
 	char	*result;
 	int		i;
+	int		j;
 
+	j = 0;
 	i = 0;
-	if (buffer[i] == '\0')
+	if (buffer[j] == '\0')
 		return (NULL);
-	result = malloc(sizeof(char) * (BUFFER_SIZE + 1));
+	while (buffer[j] != '\0' && buffer[j] != '\n')
+		j++;
+	if (buffer[j] == '\n')
+		j++;
+	result = malloc(sizeof(char) * (j + 1));
 	if (result == NULL)
 		return (NULL);
-	while (buffer[i] != '\0' && buffer[i] != '\n')
+	while (i < j)
 	{
 		result[i] = buffer[i];
 		i++;
 	}
-	if (buffer[i] == '\n')
-		result[i] = '\n';
-	else
-		result[i] = '\0';
+	result[i] = '\0';
 	return (result);
+}
+
+char	*for_free(char *buffer)
+{
+	free(buffer);
+	return (NULL);
 }
 
 char	*new_buffer(char *buffer)
@@ -56,21 +49,21 @@ char	*new_buffer(char *buffer)
 	char	*newb;
 	int		i;
 	int		j;
+	int		remain;
 
+	remain = 0;
 	i = 0;
-	newb = malloc(sizeof(char) * (BUFFER_SIZE + 1));
-	if (newb == NULL)
-		return (NULL);
 	while (buffer[i] != '\0' && buffer[i] != '\n')
 		i++;
 	if (buffer[i] == '\n')
 		i++;
-	else if (buffer[i] == '\0')
-	{
-		free(newb);
-		free(buffer);
-		return (NULL);
-	}
+	if (buffer[i] == '\0')
+		return (for_free(buffer));
+	while (buffer[i + remain] != '\0')
+		remain++;
+	newb = malloc(sizeof(char) * (remain + 1));
+	if (newb == NULL)
+		return (for_free(buffer));
 	j = 0;
 	while (buffer[i] != '\0')
 		newb[j++] = buffer[i++];
@@ -82,10 +75,9 @@ char	*new_buffer(char *buffer)
 char	*check_read(int fd, char *buffer)
 {
 	char	*contain;
-	int		i;
+	char	*temp;
 	int		n;
 
-	i = 0;
 	contain = malloc(sizeof(char) * (BUFFER_SIZE + 1));
 	if (contain == NULL)
 		return (NULL);
@@ -99,12 +91,14 @@ char	*check_read(int fd, char *buffer)
 			return (NULL);
 		}
 		if (n == 0)
-			break;
+			break ;
 		contain[n] = '\0';
-		buffer = ft_strjoin(buffer, contain);
+		temp = ft_strjoin(buffer, contain);
+		free(buffer);
+		buffer = temp;
 	}
 	free(contain);
-	return(buffer);
+	return (buffer);
 }
 
 char	*get_next_line(int fd)
@@ -119,5 +113,24 @@ char	*get_next_line(int fd)
 		return (NULL);
 	result = copy_result(buffer);
 	buffer = new_buffer(buffer);
-	return(result);
+	return (result);
 }
+
+// #include <fcntl.h>
+
+// int	main()
+// {
+// 	int 	fd;
+// 	char	*line;
+// 	int		i;
+// 	fd = open("test.txt", O_RDONLY);
+// 	line = get_next_line(fd);
+// 	i = 0;
+// 	while (line)
+// 	{
+// 		printf("[%d] : %s",i, line);
+// 		free(line);
+// 		line = get_next_line(fd);
+// 		i++;
+// 	}
+// }
